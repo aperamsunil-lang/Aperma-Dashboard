@@ -3,12 +3,13 @@
 // ============================================================
 
 // YAHAN APNA GOOGLE APPS SCRIPT WEB APP URL DAALEIN:
-const API_URL = "https://script.google.com/macros/s/AKfycbwdbk8kxJ6Liy7-nSkPrRqi5Bq2e1PR-etHMVXEl_mj2ZzaMGmJ6zdTgZ49iiPN5e5uQQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyRGdudl14bjthQFyXTzOOc8Hqqb-GGcOx-EE1FnNugRP1-p35wGErtkiYE4kbJwzG5rw/exec";
 
 var d = {};
 var charts = {};
 var refreshInterval = null; 
 var anomalies = []; 
+var currentPage = document.body.dataset.page || 'all';
 
 Chart.register(ChartDataLabels);
 
@@ -34,6 +35,7 @@ function showModal(title, bodyHtml) {
 function closeModal() {
   document.getElementById('detailModal').style.display = 'none';
 }
+setInterval(function() { if(document.getElementById('main-content').style.display !== 'none') { fetchLiveData(false); } }, 300000);
 
 function showDetailTable(title, headers, rows) {
   var html = '<div style="overflow-x:auto; max-height: 70vh;">';
@@ -198,10 +200,12 @@ function get3DGradient(id, colorTop, colorBottom) {
 }
 
 function formatUnitSmart(val) { 
-  if (!val || isNaN(val)) return '0 Kg';
+  if (!val || isNaN(val)) return '0';
   let num = parseFloat(val);
-  if (num >= 1000) { return Number((num / 1000).toFixed(2)).toLocaleString('en-IN') + ' MT'; } 
-  return Number(num.toFixed(2)).toLocaleString('en-IN') + ' Kg'; 
+  if (num >= 10000000) return (num/10000000).toFixed(2) + ' Cr';
+  if (num >= 100000) return (num/100000).toFixed(2) + ' L';
+  if (num >= 1000) return (num/1000).toFixed(1) + ' K';
+  return Number(num.toFixed(2)).toLocaleString('en-IN');
 }
 
 function fmtL(n) { 
@@ -248,20 +252,42 @@ async function fetchLiveData(showLoadingUI = true) {
   };
 
   try {
-    let res = await fetch(API_URL + "?type=all"); 
+    let res = await fetch(API_URL + "?type=" + currentPage); 
     if(!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     let allData = await res.json();
     if(allData.error) throw new Error(allData.error);
 
-    d.inward = allData.inward; d.fg = allData.fg; d.scrap = allData.scrap; d.opex = allData.opex;
-    d.liveStock = allData.livestock; d.overallStock = allData.overallstock; d.opexApril = allData.opexApril; d.consumption = allData.consumption;
+    // Assign data based on current page
+    if (currentPage === 'all' || currentPage === 'overview') {
+      d.inward = allData.inward; d.fg = allData.fg; d.scrap = allData.scrap; d.overallStock = allData.overallstock;
+    }
+    if (currentPage === 'all' || currentPage === 'opex-april') d.opexApril = allData.opexApril;
+    if (currentPage === 'all' || currentPage === 'overallstock') d.overallStock = allData.overallstock;
+    if (currentPage === 'all' || currentPage === 'inward') d.inward = allData.inward;
+    if (currentPage === 'all' || currentPage === 'dispatch') d.fg = allData.fg;
+    if (currentPage === 'all' || currentPage === 'scrap') d.scrap = allData.scrap;
+    if (currentPage === 'all' || currentPage === 'opex') d.opex = allData.opex;
+    if (currentPage === 'all' || currentPage === 'consumption') d.consumption = allData.consumption;
+    if (currentPage === 'all' || currentPage === 'livestock') d.liveStock = allData.livestock;
 
     if(showLoadingUI) loadText.innerText = "✨ Assembling Dashboard...";
     
     // Use requestAnimationFrame for better timing than setTimeout
     requestAnimationFrame(function() {
       try {
-        setupDropdowns(); updateAllChartsColor(); buildOpexAprilTable(); loadAnomalies();
+        setupDropdowns(); updateAllChartsColor(); 
+        if (currentPage === 'all' || currentPage === 'opex-april') buildOpexAprilTable(); 
+        if (currentPage === 'all' || currentPage === 'insights') { loadInsights(); loadAnomalies(); }
+        if (currentPage === 'all' || currentPage === 'analytics') loadPredictiveAnalytics();
+        if (currentPage === 'all' || currentPage === 'gantt') initGanttChart();
+        if (currentPage === 'all' || currentPage === 'opex') updateOpex();
+        if (currentPage === 'all' || currentPage === 'consumption') updateConsumption();
+        if (currentPage === 'all' || currentPage === 'livestock') updateLiveStock();
+        if (currentPage === 'all' || currentPage === 'overallstock') updateOverallStock();
+        if (currentPage === 'all' || currentPage === 'inward') updateInward();
+        if (currentPage === 'all' || currentPage === 'dispatch') updateFG();
+        if (currentPage === 'all' || currentPage === 'scrap') updateScrap();
+        if (currentPage === 'all' || currentPage === 'overview') { updateOverview(); updateOverviewStock(); }
         if(showLoadingUI) { loader.style.display = 'none'; document.getElementById('main-content').style.display = 'block'; }
         showToast("Data Synced Successfully!", "success");
       } catch(error) { failHandler("Assembly Error: " + error.message); }
@@ -352,7 +378,6 @@ function buildOpexAprilTable() {
   }
 
   renderOpexAprilChart('chart-opex-april-comp', 'opexAprilComp');
-  renderOpexAprilChart('chart-opex-april-comp-overview', 'opexAprilCompOverview');
 }
 
 function populateSelect(id, valuesArr) {
@@ -376,10 +401,10 @@ var scaleOptsQty = { y: { grace: '20%', grid: {color:'rgba(255,255,255,0.05)'}, 
 var scaleOptsInr = { y: { grace: '20%', grid: {color:'rgba(255,255,255,0.05)'}, ticks: { callback: function(value) { if(value >= 10000000) return (value/10000000).toFixed(2) + 'Cr'; if(value >= 100000) return (value/100000).toFixed(2) + 'L'; return value.toLocaleString('en-IN'); } } }, x: { grid: {display:false} } };
 
 function updateOverviewStock() {
-  if(!d.overallStock) return;
+  if(!d.overallStock || !d.overallStock.rows) return;
   var from = document.getElementById('ovFrom').value;
   var to = document.getElementById('ovTo').value;
-  var filtered = d.overallStock.filter(row => {
+  var filtered = d.overallStock.rows.filter(row => {
     if(!from && !to) return true;
     var rowDate = new Date(row['Date']);
     if(from && rowDate < new Date(from)) return false;

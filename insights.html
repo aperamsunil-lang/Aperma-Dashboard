@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Aperam Store Dashboard - AI Insights</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#EF7D00">
+  <link rel="apple-touch-icon" href="icon-512.png">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="insights">
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <div id="detailModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3 id="modalTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Details</h3>
+        <button class="modal-close" onclick="closeModal()">✖</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeModal()">Close Window</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationsModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3 id="notificationsTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Notifications</h3>
+        <button class="modal-close" onclick="closeNotifications()">✖</button>
+      </div>
+      <div class="modal-body" id="notificationsBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeNotifications()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="searchModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Search Results</h3>
+        <button class="modal-close" onclick="closeSearchResults()">✖</button>
+      </div>
+      <div class="modal-body" id="searchBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeSearchResults()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lock-screen" style="display:none;">
+    <div class="lock-box">
+      <h2 style="margin-bottom:16px;">🔒 Dashboard Locked</h2>
+      <input type="password" id="pinInput" placeholder="••••" maxlength="10" onkeypress="if(event.keyCode==13) unlockDash()">
+      <button class="lock-btn" onclick="unlockDash()">Unlock Dashboard</button>
+      <p id="pinError" style="color:#ef4444; font-size:13px; margin-top:16px; display:none; font-weight:700;">Incorrect PIN!</p>
+    </div>
+  </div>
+
+  <div class="topbar glass">
+    <div class="top-left">
+      <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+      <input type="text" id="globalSearch" placeholder="🔍 Search all data..." style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-card); margin-left: 10px; font-size: 13px;">
+    </div>
+    <div class="top-center"><h1>APERAM STORE DASHBOARD</h1></div>
+    <div class="top-actions">
+      <button class="action-btn" onclick="window.print()">📄 Print</button>
+      <button class="action-btn" onclick="fetchLiveData(true)">🔄 Sync</button>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    
+    <div class="sidebar glass" id="appSidebar">
+      <div class="sidebar-logo-container">
+        <img src="https://drive.google.com/thumbnail?id=1ly4XcVgyI-fFE6RVmSNpD0PZqpnrL__7&sz=w400" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+      </div>
+      <div class="nav-title">Navigation</div>
+      <button class="tab" onclick="window.location.href='overview.html'">📊 Overview</button>
+      <button class="tab" onclick="window.location.href='opex-april.html'">📄 OPEX April 26</button>
+      <button class="tab" onclick="window.location.href='overallstock.html'">🏗️ Overall Stock</button>
+      <button class="tab" onclick="window.location.href='inward.html'">📥 Inward RM</button>
+      <button class="tab" onclick="window.location.href='dispatch.html'">📤 FG Dispatch</button>
+      <button class="tab" onclick="window.location.href='scrap.html'">♻️ Scrap</button>
+      <button class="tab" onclick="window.location.href='opex.html'">⚙️ Opex MIS</button>
+      <button class="tab" onclick="window.location.href='consumption.html'">🔥 Consumption</button>
+      <button class="tab" onclick="window.location.href='livestock.html'">📦 Live Stock</button>
+      <button class="tab" onclick="window.location.href='gantt.html'">🛤️ Timeline (Gantt)</button>
+      <button class="tab" onclick="window.location.href='insights.html' class="tab active" class="tab active" class="tab active"">🧠 AI Insights</button>
+      <button class="tab" onclick="window.location.href='analytics.html'">📈 Predictive</button>
+      
+      <hr style="border:0; border-top:1px solid var(--border-color); margin:16px 20px;">
+      <button class="tab" onclick="window.location.href='settings.html'">🛠️ Settings</button>
+    </div>
+
+    <div class="main-content-area" id="mainArea">
+      
+      <div id="loader">
+        <div class="spinner"></div>
+        <p id="loadText">Loading AI Insights...</p>
+      </div>
+
+      <div class="content" id="main-content" style="display:none;">
+        
+        <div class="section active" id="sec-insights">
+          <div class="tab-header"><h2>🧠 AI-Powered Insights</h2></div>
+          <div class="insights-panel" id="insights-container"></div>
+          <div class="card-full glass"><div class="card-title">🔍 Anomaly Detection Dashboard</div><div id="anomalies-container" style="padding:20px;"></div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+  <script>
+  // Service Worker ko activate karne ka code
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("Offline mode activated!"));
+  }
+</script>
+
+</body>
+</html>
+
+
+
+
+

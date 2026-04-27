@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Aperam Store Dashboard - Overview</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#EF7D00">
+  <link rel="apple-touch-icon" href="icon-512.png">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="overview">
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <div id="detailModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3 id="modalTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Details</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeModal()">Close Window</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationsModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3 id="notificationsTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Notifications</h3>
+        <button class="modal-close" onclick="closeNotifications()">×</button>
+      </div>
+      <div class="modal-body" id="notificationsBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeNotifications()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="searchModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Search Results</h3>
+        <button class="modal-close" onclick="closeSearchResults()">×</button>
+      </div>
+      <div class="modal-body" id="searchBody"></div>
+      <div class="modal-footer">
+        <button class="action-btn" onclick="closeSearchResults()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lock-screen" style="display:none;">
+    <div class="lock-box">
+      <h2 style="margin-bottom:16px;">Dashboard Locked</h2>
+      <input type="password" id="pinInput" placeholder="****" maxlength="10" onkeypress="if(event.keyCode==13) unlockDash()">
+      <button class="lock-btn" onclick="unlockDash()">Unlock Dashboard</button>
+      <p id="pinError" style="color:#ef4444; font-size:13px; margin-top:16px; display:none; font-weight:700;">Incorrect PIN!</p>
+    </div>
+  </div>
+
+  <div class="topbar glass">
+    <div class="top-left">
+      <button class="menu-toggle" onclick="toggleMobileMenu()">Menu</button>
+      <input type="text" id="globalSearch" placeholder="Search all data..." style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-card); margin-left: 10px; font-size: 13px;">
+    </div>
+    <div class="top-center"><h1>APERAM STORE DASHBOARD</h1></div>
+    <div class="top-actions">
+      <button class="action-btn" onclick="window.print()">Print</button>
+      <button class="action-btn" onclick="fetchLiveData(true)">Sync</button>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    
+    <div class="sidebar glass" id="appSidebar">
+      <div class="sidebar-logo-container">
+        <img src="https://drive.google.com/thumbnail?id=1ly4XcVgyI-fFE6RVmSNpD0PZqpnrL__7&sz=w400" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+      </div>
+      <div class="nav-title">Navigation</div>
+      <button class="tab active" onclick="window.location.href='overview.html'">Overview</button>
+      <button class="tab" onclick="window.location.href='opex-april.html'">OPEX April 26</button>
+      <button class="tab" onclick="window.location.href='inward.html'">Inward RM</button>
+      <button class="tab" onclick="window.location.href='dispatch.html'">FG Dispatch</button>
+      <button class="tab" onclick="window.location.href='scrap.html'">Scrap</button>
+      <button class="tab" onclick="window.location.href='opex.html'">Opex MIS</button>
+      <button class="tab" onclick="window.location.href='consumption.html'">Consumption</button>
+      <button class="tab" onclick="window.location.href='livestock.html'">Live Stock</button>
+      <button class="tab" onclick="window.location.href='gantt.html'">Timeline (Gantt)</button>
+      <button class="tab" onclick="window.location.href='insights.html'">AI Insights</button>
+      <button class="tab" onclick="window.location.href='analytics.html'">Predictive</button>
+      
+      <hr style="border:0; border-top:1px solid var(--border-color); margin:16px 20px;">
+      <button class="tab" onclick="window.location.href='settings.html'">Settings</button>
+    </div>
+
+    <div class="main-content-area" id="mainArea">
+      
+      <div id="loader">
+        <div class="spinner"></div>
+        <p id="loadText">Loading Overview...</p>
+      </div>
+
+      <div class="content" id="main-content" style="display:none;">
+        
+        <div class="section active" id="sec-overview">
+          <div class="tab-header">
+            <h2>Operations Overview</h2>
+            <div class="tab-filter glass">
+              <span class="date-label">From:</span><input type="date" id="ovFrom" class="date-input" onchange="updateOverview(); updateOverviewStock();">
+              <span class="date-label">To:</span><input type="date" id="ovTo" class="date-input" onchange="updateOverview(); updateOverviewStock();">
+            </div>
+          </div>
+          <div class="overview-wrapper">
+            <div class="overview-main">
+              <div class="metrics" id="overview-metrics">
+                <div class="kpi glass" draggable="true" onclick="showModal('Inward Details', 'Showing smart conversion rules. <br>Data fetched from Total Inward RM sheet.')"><span class="kpi-icon">RM</span><div class="kpi-label">Total Inward RM (QTY)</div><div class="kpi-value" id="kpi-ov-in-qty">0</div></div>
+                <div class="kpi glass" draggable="true"><span class="kpi-icon">INR</span><div class="kpi-label">Total Inward RM (INR)</div><div class="kpi-value" id="kpi-ov-in-inr">0</div></div>
+                <div class="kpi glass" draggable="true"><span class="kpi-icon">FG</span><div class="kpi-label">FG Dispatched</div><div class="kpi-value" id="kpi-ov-fg-qty">0</div></div>
+                <div class="kpi glass" draggable="true"><span class="kpi-icon">SCR</span><div class="kpi-label">Scrap Dispatched</div><div class="kpi-value" id="kpi-ov-sc-qty">0</div></div>
+              </div>
+              <div class="row2">
+                <div class="card glass"><div class="card-title">Monthly Inward RM</div><div class="chart-box"><canvas id="c_ov_qty"></canvas></div></div>
+                <div class="card glass"><div class="card-title">Monthly Inward RM Value</div><div class="chart-box"><canvas id="c_ov_inr"></canvas></div></div>
+              </div>
+              <div class="row2">
+                <div class="card glass"><div class="card-title">FG Dispatch Trend</div><div class="chart-box"><canvas id="c_ov_fg"></canvas></div></div>
+                <div class="card glass"><div class="card-title">Top 10 Inward Items</div><div class="chart-box"><canvas id="c_ov_top_inward"></canvas></div></div>
+              </div>
+            </div>
+            <div class="overview-sidebar">
+              <div class="card-full glass">
+                <div class="card-title">Overall Stock</div>
+                <div class="table-container-wrapper" style="margin-bottom: 0; height: 100%; display: flex; flex-direction: column;">
+                  <div class="scroll-area" style="flex: 1; min-height: 250px;">
+                    <table id="osTableOverview" class="modern-table dynamic-table" style="font-size: 12px;">
+                      <thead><tr><th>Category</th><th>Qty</th><th>Trend</th></tr></thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+  // Service Worker ko activate karne ka code
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("Offline mode activated!"));
+  }
+</script>
+
+</body>
+</html>
+
+
+
+

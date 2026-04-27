@@ -156,13 +156,9 @@
             </div>
             <div class="overview-sidebar">
               <div class="card-full glass">
-                <div class="card-title">📊 OPEX April Cost Comparison (INR)</div>
-                <div class="chart-box" style="height: 220px;"><canvas id="chart-opex-april-comp-overview"></canvas></div>
-              </div>
-              <div class="card-full glass">
                 <div class="card-title">🏗️ Overall Stock</div>
-                <div class="table-container-wrapper" style="margin-bottom: 0; max-height: 280px;">
-                  <div class="scroll-area" style="height: 100%;">
+                <div class="table-container-wrapper" style="margin-bottom: 0; height: 100%; display: flex; flex-direction: column;">
+                  <div class="scroll-area" style="flex: 1; min-height: 250px;">
                     <table id="osTableOverview" class="modern-table dynamic-table" style="font-size: 12px;">
                       <thead><tr><th>Category</th><th>Qty</th><th>Trend</th></tr></thead>
                       <tbody></tbody>
@@ -179,8 +175,8 @@
             <h2>📄 OPEX April 2026 Report</h2>
           </div>
 
-          <div class="table-container-wrapper" style="margin-bottom: 20px;">
-            <div class="scroll-area" style="max-height: 60vh;">
+          <div class="table-container-wrapper" style="margin-bottom: 30px; max-height: 50vh;">
+            <div class="scroll-area">
               <table id="opexAprilTable" class="modern-table dynamic-table">
                 <thead>
                   <tr>
@@ -197,7 +193,7 @@
 
           <div class="card-full glass" style="margin-bottom: 0;">
             <div class="card-title">📊 Budget vs Actual Cost Comparison (INR)</div>
-            <div class="chart-box" style="height: 250px;"><canvas id="chart-opex-april-comp"></canvas></div>
+            <div class="chart-box" style="height: 300px; min-height: 300px;"><canvas id="chart-opex-april-comp"></canvas></div>
           </div>
         </div>
 
@@ -403,5 +399,14 @@
   </div>
 
   <script src="script.js"></script>
+
+  <script>
+  // Service Worker ko activate karne ka code
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("Offline mode activated!"));
+  }
+</script>
+
 </body>
 </html>

@@ -225,18 +225,66 @@ function checkDateRange(dateString, fromId, toId) {
   return true;
 }
 
+function normalizeData(source) {
+  if(!source) return null;
+  if(Array.isArray(source)) return { rows: source };
+  if(source.rows && Array.isArray(source.rows)) return source;
+  return { rows: [source] };
+}
+
+function buildCategoryMap(rows) {
+  var map = {};
+  if(!Array.isArray(rows)) return map;
+  rows.forEach(function(r) {
+    if(r && r.category) map[r.category] = 1;
+  });
+  return map;
+}
+
+function normalizeLiveStock(source) {
+  if(!source) return null;
+  if(Array.isArray(source)) {
+    return { rows: source, categories: buildCategoryMap(source) };
+  }
+  if(source.rows && Array.isArray(source.rows)) {
+    if(!source.categories) source.categories = buildCategoryMap(source.rows);
+    return source;
+  }
+  return { rows: [source], categories: buildCategoryMap([source]) };
+}
+
+function findCoilValue(row) {
+  if(!row || typeof row !== 'object') return '';
+  var keys = Object.keys(row);
+  for(var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if(key.toLowerCase().includes('coil')) {
+      return row[key] !== undefined && row[key] !== null ? String(row[key]) : '';
+    }
+  }
+  return '';
+}
+
 function showTab(id, btn) {
   document.querySelectorAll(".section").forEach(function(s) { s.classList.remove("active"); });
   document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
   document.getElementById("sec-"+id).classList.add("active");
   if(btn) btn.classList.add("active");
   document.getElementById('appSidebar').classList.remove('active');
+  currentPage = id;
 
   if(id === 'overview') { updateOverview(); updateOverviewStock(); }
   if(id === 'insights') { loadInsights(); loadAnomalies(); }
   if(id === 'analytics') { loadPredictiveAnalytics(); }
   if(id === 'gantt') { initGanttChart(); }
   if(id === 'opex') { updateOpex(); }
+  if(id === 'overallstock') { if(!d.overallStock || !d.overallStock.rows || !d.overallStock.rows.length) fetchLiveData(false); else updateOverallStock(); }
+  if(id === 'livestock') { if(!d.liveStock || !d.liveStock.rows || !d.liveStock.rows.length) fetchLiveData(false); else updateLiveStock(); }
+  if(id === 'inward') { updateInward(); }
+  if(id === 'dispatch') { updateFG(); }
+  if(id === 'scrap') { updateScrap(); }
+  if(id === 'consumption') { updateConsumption(); }
+  if(id === 'opex-april') { buildOpexAprilTable(); }
 }
 
 async function fetchLiveData(showLoadingUI = true) {
@@ -252,23 +300,37 @@ async function fetchLiveData(showLoadingUI = true) {
   };
 
   try {
-    let res = await fetch(API_URL + "?type=" + currentPage); 
+    var pageType = (currentPage === 'all' || currentPage === 'overview') ? 'all' : currentPage;
+    let res = await fetch(API_URL + "?type=" + pageType);
     if(!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     let allData = await res.json();
     if(allData.error) throw new Error(allData.error);
 
+    if (pageType !== 'all') {
+      var pageData = allData[pageType] || allData[pageType.toLowerCase()] || allData[pageType.charAt(0).toUpperCase() + pageType.slice(1)];
+      if (pageData === undefined || pageData === null || (pageData.rows !== undefined && Array.isArray(pageData.rows) && pageData.rows.length === 0)) {
+        let fallback = await fetch(API_URL + "?type=all");
+        if(!fallback.ok) throw new Error(`HTTP ${fallback.status}: ${fallback.statusText}`);
+        allData = await fallback.json();
+        if(allData.error) throw new Error(allData.error);
+      }
+    }
+
     // Assign data based on current page
     if (currentPage === 'all' || currentPage === 'overview') {
-      d.inward = allData.inward; d.fg = allData.fg; d.scrap = allData.scrap; d.overallStock = allData.overallstock;
+      d.inward = normalizeData(allData.inward || allData.Inward);
+      d.fg = normalizeData(allData.fg || allData.FG);
+      d.scrap = normalizeData(allData.scrap || allData.Scrap);
+      d.overallStock = normalizeData(allData.overallstock || allData.overallStock);
     }
-    if (currentPage === 'all' || currentPage === 'opex-april') d.opexApril = allData.opexApril;
-    if (currentPage === 'all' || currentPage === 'overallstock') d.overallStock = allData.overallstock;
-    if (currentPage === 'all' || currentPage === 'inward') d.inward = allData.inward;
-    if (currentPage === 'all' || currentPage === 'dispatch') d.fg = allData.fg;
-    if (currentPage === 'all' || currentPage === 'scrap') d.scrap = allData.scrap;
-    if (currentPage === 'all' || currentPage === 'opex') d.opex = allData.opex;
-    if (currentPage === 'all' || currentPage === 'consumption') d.consumption = allData.consumption;
-    if (currentPage === 'all' || currentPage === 'livestock') d.liveStock = allData.livestock;
+    if (currentPage === 'all' || currentPage === 'opex-april') d.opexApril = allData.opexApril || allData.opexapril;
+    if (currentPage === 'all' || currentPage === 'overallstock') d.overallStock = normalizeData(allData.overallstock || allData.overallStock);
+    if (currentPage === 'all' || currentPage === 'inward') d.inward = normalizeData(allData.inward || allData.Inward);
+    if (currentPage === 'all' || currentPage === 'dispatch') d.fg = normalizeData(allData.fg || allData.FG);
+    if (currentPage === 'all' || currentPage === 'scrap') d.scrap = normalizeData(allData.scrap || allData.Scrap);
+    if (currentPage === 'all' || currentPage === 'opex') d.opex = allData.opex || allData.Opex;
+    if (currentPage === 'all' || currentPage === 'consumption') d.consumption = normalizeData(allData.consumption || allData.Consumption);
+    if (currentPage === 'all' || currentPage === 'livestock') d.liveStock = normalizeLiveStock(allData.livestock || allData.liveStock);
 
     if(showLoadingUI) loadText.innerText = "✨ Assembling Dashboard...";
     
@@ -540,7 +602,11 @@ function updateInward() {
   var sumQty = 0, sumInr = 0, months = {}, pos = {};
   d.inward.rows.forEach(function(r) { 
     if(checkDateRange(r.dateStr, 'inwardFrom', 'inwardTo') && (sPo === 'ALL' || String(r.po).trim() === String(sPo).trim())) { 
-      sumQty += r.qty; sumInr += r.inr; months[r.monthLbl] = (months[r.monthLbl] || 0) + r.qty; if(r.po && r.po !== 'NA') pos[r.po] = (pos[r.po] || 0) + r.qty; 
+      var qty = parseFloat(r.qty) || 0;
+      var inr = parseFloat(r.inr) || 0;
+      sumQty += qty; sumInr += inr;
+      months[r.monthLbl] = (months[r.monthLbl] || 0) + qty;
+      if(r.po && r.po !== 'NA') pos[r.po] = (pos[r.po] || 0) + qty;
     } 
   });
   document.getElementById('kpi-in-qty').innerText = formatUnitSmart(sumQty); document.getElementById('kpi-in-inr').innerText = '₹' + fmtCr(sumInr) + ' Cr';
@@ -553,12 +619,43 @@ function updateInward() {
     var rows = (d.inward.rows || []).filter(function(r) { return checkDateRange(r.dateStr, 'inwardFrom', 'inwardTo') && (sPo === 'ALL' || String(r.po).trim() === String(sPo).trim()); });
     showDetailTable('Filtered Inward RM Value Rows', ['PO', 'Item', 'Qty', 'Value (₹)', 'Month', 'Date'], rows.map(function(r) { return [r.po || '', r.item || '', formatUnitSmart(r.qty), '₹ ' + (r.inr ? Math.round(r.inr).toLocaleString('en-IN') : '0'), r.monthLbl || '', r.dateStr || '']; }));
   };
-  
+  refreshInwardCoilTable();
   destroyChart('inward'); destroyChart('inwardPo');
   var mKeys = Object.keys(months).sort();
   charts.inward = new Chart(document.getElementById('chart-inward'), { type: 'bar', data: { labels: mKeys, datasets: [{ data: mKeys.map(function(k) { return months[k]; }), backgroundColor: get3DGradient('chart-inward', '#9d4edd', '#f97316'), borderRadius: {topLeft: 8, topRight: 8} }] }, options: { maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: scaleOptsQty } });
   var pKeys = Object.keys(pos).sort(function(a,b) { return pos[b] - pos[a]; }).slice(0,10);
   charts.inwardPo = new Chart(document.getElementById('chart-inward-po'), { type: 'bar', data: { labels: pKeys, datasets: [{ data: pKeys.map(function(k) { return pos[k]; }), backgroundColor: get3DGradient('chart-inward-po', '#9d4edd', '#f97316'), borderRadius: {topRight: 8, bottomRight: 8} }] }, options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { x: scaleOptsQty.y, y: {grid: {display:false}} } } });
+}
+
+function refreshInwardCoilTable() {
+  if(!d.inward || !d.inward.rows) return;
+  var query = document.getElementById('coilSearchInput') ? document.getElementById('coilSearchInput').value.trim().toLowerCase() : '';
+  var sPo = document.getElementById('inwardPO').value;
+  var tbody = document.querySelector('#inwardCoilTable tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  var rows = (d.inward.rows || []).filter(function(r) {
+    var valid = checkDateRange(r.dateStr, 'inwardFrom', 'inwardTo') && (sPo === 'ALL' || String(r.po).trim() === String(sPo).trim());
+    if(!valid) return false;
+    if(!query) return true;
+    var coilVal = (findCoilValue(r) || '').toLowerCase();
+    return coilVal.includes(query) || String(r.po || '').toLowerCase().includes(query) || String(r.item || '').toLowerCase().includes(query);
+  });
+  rows.forEach(function(r) {
+    var coilValue = findCoilValue(r);
+    var qty = parseFloat(r.qty) || 0;
+    var val = parseFloat(r.inr || r.val || 0) || 0;
+    var btnHtml = `<button class="action-btn" onclick="showModal('${coilValue || r.po || 'Details'}', 'PO: ${r.po || ''}<br>Item: ${r.item || ''}<br>Coil: ${coilValue || 'N/A'}<br>Qty: ${formatUnitSmart(qty)}<br>Value: ₹${fmtL(val)}<br>Date: ${r.dateStr || ''}')">View</button>`;
+    tbody.innerHTML += `<tr><td>${coilValue}</td><td>${r.po || ''}</td><td>${r.item || ''}</td><td>${formatUnitSmart(qty)}</td><td>₹ ${Math.round(val).toLocaleString('en-IN')}</td><td>${r.monthLbl || ''}</td><td>${r.dateStr || ''}</td><td>${btnHtml}</td></tr>`;
+  });
+  if($.fn.DataTable.isDataTable('#inwardCoilTable')) { $('#inwardCoilTable').DataTable().destroy(); }
+  initDataTable('inwardCoilTable');
+}
+
+function resetInwardCoilSearch() {
+  var input = document.getElementById('coilSearchInput');
+  if(input) input.value = '';
+  refreshInwardCoilTable();
 }
 
 function updateFG() {
@@ -735,9 +832,11 @@ function updateLiveStock() {
   
   d.liveStock.rows.forEach(function(r) { 
     if(sC === 'ALL' || String(r.category).trim() === String(sC).trim()) { 
-       sumQty += r.qty; sumVal += r.val; if(r.category) cv[r.category] = (cv[r.category] || 0) + r.val; ti.push(r); 
-       let btnHtml = `<button class="action-btn" onclick="showModal('${r.name}', 'Category: ${r.category}<br>Location: ${r.loc}<br>Qty: ${formatUnitSmart(r.qty)}<br>Value: ₹${fmtL(r.val)}')">View</button>`;
-       if(tb) tb.innerHTML += `<tr><td>${r.name}</td><td><span style="background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;">${r.category}</span></td><td>${r.loc}</td><td style="font-weight:700;">${formatUnitSmart(r.qty)}</td><td style="font-weight:800;color:#10b981;">₹ ${Math.round(r.val).toLocaleString('en-IN')}</td><td>${btnHtml}</td></tr>`; 
+       var qty = parseFloat(r.qty) || 0;
+       var val = parseFloat(r.val) || 0;
+       sumQty += qty; sumVal += val; if(r.category) cv[r.category] = (cv[r.category] || 0) + val; ti.push(r); 
+       let btnHtml = `<button class="action-btn" onclick="showModal('${r.name}', 'Category: ${r.category}<br>Location: ${r.loc}<br>Qty: ${formatUnitSmart(qty)}<br>Value: ₹${fmtL(val)}')">View</button>`;
+       if(tb) tb.innerHTML += `<tr><td>${r.name}</td><td><span style="background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;">${r.category}</span></td><td>${r.loc}</td><td style="font-weight:700;">${formatUnitSmart(qty)}</td><td style="font-weight:800;color:#10b981;">₹ ${Math.round(val).toLocaleString('en-IN')}</td><td>${btnHtml}</td></tr>`; 
     } 
   });
   initDataTable('lsTable');
@@ -906,8 +1005,14 @@ function showSearchResults(results) {
   } else {
     html = '<p>Found ' + results.length + ' result(s):</p>';
     results.forEach(function(r) {
-      var rowStr = JSON.stringify(r.row, null, 2).substring(0, 300) + '...';
-      html += '<div class="search-item"><strong>' + r.section.toUpperCase() + ' (Row ' + (r.index + 1) + '):</strong><pre>' + rowStr + '</pre></div>';
+      var rowHtml = '<table class="detail-table" style="margin-top: 10px; margin-bottom: 10px; width: 100%;"><tbody>';
+      for(var prop in r.row) {
+        if(r.row[prop] !== undefined && r.row[prop] !== null && r.row[prop] !== '') {
+          rowHtml += '<tr><td style="font-weight:600; width:40%; text-transform:capitalize;">' + prop + '</td><td>' + r.row[prop] + '</td></tr>';
+        }
+      }
+      rowHtml += '</tbody></table>';
+      html += '<div class="search-item" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;"><strong>' + r.section.toUpperCase() + ' (Row ' + (r.index + 1) + '):</strong>' + rowHtml + '</div>';
     });
   }
   document.getElementById('searchBody').innerHTML = html;

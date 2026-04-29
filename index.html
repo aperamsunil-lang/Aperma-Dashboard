@@ -24,7 +24,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.css">
@@ -91,7 +90,7 @@
     </div>
     <div class="top-center"><h1>APERAM STORE DASHBOARD</h1></div>
     <div class="top-actions">
-      <button class="action-btn" onclick="window.print()">📄 Print</button>
+      
       <button class="action-btn" onclick="fetchLiveData(true)">🔄 Sync</button>
     </div>
   </div>
@@ -105,7 +104,6 @@
       <div class="nav-title">Navigation</div>
       <button class="tab active" onclick="showTab('overview',this)">📊 Overview</button>
       <button class="tab" onclick="showTab('opex-april',this)">📄 OPEX April 26</button>
-      <button class="tab" onclick="showTab('overallstock',this)">🏗️ Overall Stock</button>
       <button class="tab" onclick="showTab('inward',this)">📥 Inward RM</button>
       <button class="tab" onclick="showTab('dispatch',this)">📤 FG Dispatch</button>
       <button class="tab" onclick="showTab('scrap',this)">♻️ Scrap</button>
@@ -152,19 +150,6 @@
               <div class="row2">
                 <div class="card glass"><div class="card-title">📈 FG Dispatch Trend</div><div class="chart-box"><canvas id="c_ov_fg"></canvas></div></div>
                 <div class="card glass"><div class="card-title">🏆 Top 10 Inward Items</div><div class="chart-box"><canvas id="c_ov_top_inward"></canvas></div></div>
-              </div>
-            </div>
-            <div class="overview-sidebar">
-              <div class="card-full glass">
-                <div class="card-title">🏗️ Overall Stock</div>
-                <div class="table-container-wrapper" style="margin-bottom: 0; height: 100%; display: flex; flex-direction: column;">
-                  <div class="scroll-area" style="flex: 1; min-height: 250px;">
-                    <table id="osTableOverview" class="modern-table dynamic-table" style="font-size: 12px;">
-                      <thead><tr><th>Category</th><th>Qty</th><th>Trend</th></tr></thead>
-                      <tbody></tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -233,6 +218,22 @@
           <div class="row2">
             <div class="card glass"><div class="card-title">📊 Qty Trend</div><div class="chart-box"><canvas id="chart-inward"></canvas></div></div>
             <div class="card glass"><div class="card-title">🏆 Top POs</div><div class="chart-box"><canvas id="chart-inward-po"></canvas></div></div>
+          </div>
+          <div class="card-full glass" style="margin-top: 18px; padding: 18px 20px;">
+            <div class="card-title">🔎 Inward Coil Search</div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
+              <input type="text" id="coilSearchInput" placeholder="Search Coil No. or text..." style="flex:1; min-width:220px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.12); color: var(--text-card);" oninput="refreshInwardCoilTable()">
+              <button class="action-btn" onclick="refreshInwardCoilTable()">Search Coil</button>
+              <button class="action-btn" onclick="resetInwardCoilSearch()">Reset</button>
+            </div>
+          </div>
+          <div class="table-container-wrapper" style="margin-top: 14px;">
+            <div class="scroll-area">
+              <table id="inwardCoilTable" class="modern-table dynamic-table">
+                <thead><tr><th>Coil No</th><th>PO</th><th>Item</th><th>Qty</th><th>Value (₹)</th><th>Month</th><th>Date</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
 

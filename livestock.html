@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <base target="_top">
@@ -24,7 +24,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.css">
@@ -40,7 +39,7 @@
     <div class="modal-content glass">
       <div class="modal-header">
         <h3 id="modalTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Details</h3>
-        <button class="modal-close" onclick="closeModal()">✖</button>
+        <button class="modal-close" onclick="closeModal()">?</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer">
@@ -53,7 +52,7 @@
     <div class="modal-content glass">
       <div class="modal-header">
         <h3 id="notificationsTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Notifications</h3>
-        <button class="modal-close" onclick="closeNotifications()">✖</button>
+        <button class="modal-close" onclick="closeNotifications()">?</button>
       </div>
       <div class="modal-body" id="notificationsBody"></div>
       <div class="modal-footer">
@@ -66,7 +65,7 @@
     <div class="modal-content glass" style="max-width: 800px;">
       <div class="modal-header">
         <h3 style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Search Results</h3>
-        <button class="modal-close" onclick="closeSearchResults()">✖</button>
+        <button class="modal-close" onclick="closeSearchResults()">?</button>
       </div>
       <div class="modal-body" id="searchBody"></div>
       <div class="modal-footer">
@@ -77,8 +76,8 @@
 
   <div id="lock-screen" style="display:none;">
     <div class="lock-box">
-      <h2 style="margin-bottom:16px;">🔒 Dashboard Locked</h2>
-      <input type="password" id="pinInput" placeholder="••••" maxlength="10" onkeypress="if(event.keyCode==13) unlockDash()">
+      <h2 style="margin-bottom:16px;">?? Dashboard Locked</h2>
+      <input type="password" id="pinInput" placeholder="����" maxlength="10" onkeypress="if(event.keyCode==13) unlockDash()">
       <button class="lock-btn" onclick="unlockDash()">Unlock Dashboard</button>
       <p id="pinError" style="color:#ef4444; font-size:13px; margin-top:16px; display:none; font-weight:700;">Incorrect PIN!</p>
     </div>
@@ -86,13 +85,12 @@
 
   <div class="topbar glass">
     <div class="top-left">
-      <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
-      <input type="text" id="globalSearch" placeholder="🔍 Search all data..." style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-card); margin-left: 10px; font-size: 13px;">
+      <button class="menu-toggle" onclick="toggleMobileMenu()">?</button>
+      <input type="text" id="globalSearch" placeholder="?? Search all data..." style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-card); margin-left: 10px; font-size: 13px;">
     </div>
     <div class="top-center"><h1>APERAM STORE DASHBOARD</h1></div>
     <div class="top-actions">
-      <button class="action-btn" onclick="window.print()">📄 Print</button>
-      <button class="action-btn" onclick="fetchLiveData(true)">🔄 Sync</button>
+      <button class="action-btn" onclick="fetchLiveData(true)">?? Sync</button>
     </div>
   </div>
 
@@ -103,21 +101,21 @@
         <img src="https://drive.google.com/thumbnail?id=1ly4XcVgyI-fFE6RVmSNpD0PZqpnrL__7&sz=w400" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
       </div>
       <div class="nav-title">Navigation</div>
-      <button class="tab" onclick="window.location.href='overview.html'">📊 Overview</button>
-      <button class="tab" onclick="window.location.href='opex-april.html'">📄 OPEX April 26</button>
-      <button class="tab" onclick="window.location.href='overallstock.html'">🏗️ Overall Stock</button>
-      <button class="tab" onclick="window.location.href='inward.html'">📥 Inward RM</button>
-      <button class="tab" onclick="window.location.href='dispatch.html'">📤 FG Dispatch</button>
-      <button class="tab" onclick="window.location.href='scrap.html'">♻️ Scrap</button>
-      <button class="tab" onclick="window.location.href='opex.html'">⚙️ Opex MIS</button>
-      <button class="tab" onclick="window.location.href='consumption.html'">🔥 Consumption</button>
-      <button class="tab" onclick="window.location.href='livestock.html' class="tab active" class="tab active" class="tab active"">📦 Live Stock</button>
-      <button class="tab" onclick="window.location.href='gantt.html'">🛤️ Timeline (Gantt)</button>
-      <button class="tab" onclick="window.location.href='insights.html'">🧠 AI Insights</button>
-      <button class="tab" onclick="window.location.href='analytics.html'">📈 Predictive</button>
+      <button class="tab" onclick="window.location.href='overview.html'">?? Overview</button>
+      <button class="tab" onclick="window.location.href='opex-april.html'">?? OPEX April 26</button>
+      <button class="tab" onclick="window.location.href='overallstock.html'">??? Overall Stock</button>
+      <button class="tab" onclick="window.location.href='inward.html'">?? Inward RM</button>
+      <button class="tab" onclick="window.location.href='dispatch.html'">?? FG Dispatch</button>
+      <button class="tab" onclick="window.location.href='scrap.html'">?? Scrap</button>
+      <button class="tab" onclick="window.location.href='opex.html'">?? Opex MIS</button>
+      <button class="tab" onclick="window.location.href='consumption.html'">?? Consumption</button>
+      <button class="tab" onclick="window.location.href='livestock.html' class="tab active" class="tab active" class="tab active"">?? Live Stock</button>
+      <button class="tab" onclick="window.location.href='gantt.html'">??? Timeline (Gantt)</button>
+      <button class="tab" onclick="window.location.href='insights.html'">?? AI Insights</button>
+      <button class="tab" onclick="window.location.href='analytics.html'">?? Predictive</button>
       
       <hr style="border:0; border-top:1px solid var(--border-color); margin:16px 20px;">
-      <button class="tab" onclick="window.location.href='settings.html'">🛠️ Settings</button>
+      <button class="tab" onclick="window.location.href='settings.html'">??? Settings</button>
     </div>
 
     <div class="main-content-area" id="mainArea">
@@ -131,24 +129,24 @@
         
         <div class="section active" id="sec-livestock">
           <div class="tab-header">
-            <h2>📦 Live Stock Overview</h2>
+            <h2>?? Live Stock Overview</h2>
             <div class="tab-filter glass">
               <span class="date-label" style="font-style: italic; opacity: 0.6;">*Live Snapshot*</span>
               <select id="lsCategory" onchange="updateLiveStock()" style="margin-left:10px;"><option value="ALL">All Categories</option></select>
             </div>
           </div>
           <div class="metrics">
-            <div class="kpi glass"><span class="kpi-icon">📦</span><div class="kpi-label">Total Items</div><div class="kpi-value" id="kpi-ls-qty">0</div></div>
-            <div class="kpi glass"><span class="kpi-icon">💰</span><div class="kpi-label">Total Value</div><div class="kpi-value" id="kpi-ls-val">0</div></div>
+            <div class="kpi glass"><span class="kpi-icon">??</span><div class="kpi-label">Total Items</div><div class="kpi-value" id="kpi-ls-qty">0</div></div>
+            <div class="kpi glass"><span class="kpi-icon">??</span><div class="kpi-label">Total Value</div><div class="kpi-value" id="kpi-ls-val">0</div></div>
           </div>
           <div class="row2">
-            <div class="card glass"><div class="card-title">📊 Value by Category</div><div class="chart-box"><canvas id="chart-ls-cat-val"></canvas></div></div>
-            <div class="card glass"><div class="card-title">🏆 Top 10 Items</div><div class="chart-box"><canvas id="chart-ls-top-items"></canvas></div></div>
+            <div class="card glass"><div class="card-title">?? Value by Category</div><div class="chart-box"><canvas id="chart-ls-cat-val"></canvas></div></div>
+            <div class="card glass"><div class="card-title">?? Top 10 Items</div><div class="chart-box"><canvas id="chart-ls-top-items"></canvas></div></div>
           </div>
           <div class="table-container-wrapper">
             <div class="scroll-area">
               <table id="lsTable" class="modern-table dynamic-table">
-                <thead><tr><th>Item Name</th><th>Category</th><th>Location</th><th>Qty</th><th>Value (₹)</th><th>Action</th></tr></thead>
+                <thead><tr><th>Item Name</th><th>Category</th><th>Location</th><th>Qty</th><th>Value (?)</th><th>Action</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>

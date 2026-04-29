@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <base target="_top">
@@ -24,7 +24,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.css">
@@ -40,7 +39,7 @@
     <div class="modal-content glass">
       <div class="modal-header">
         <h3 id="modalTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Details</h3>
-        <button class="modal-close" onclick="closeModal()">Ã—</button>
+        <button class="modal-close" onclick="closeModal()">×</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer">
@@ -53,7 +52,7 @@
     <div class="modal-content glass">
       <div class="modal-header">
         <h3 id="notificationsTitle" style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Notifications</h3>
-        <button class="modal-close" onclick="closeNotifications()">Ã—</button>
+        <button class="modal-close" onclick="closeNotifications()">×</button>
       </div>
       <div class="modal-body" id="notificationsBody"></div>
       <div class="modal-footer">
@@ -66,7 +65,7 @@
     <div class="modal-content glass" style="max-width: 800px;">
       <div class="modal-header">
         <h3 style="color: #EF7D00; font-weight: 900; margin: 0; text-transform: uppercase;">Search Results</h3>
-        <button class="modal-close" onclick="closeSearchResults()">Ã—</button>
+        <button class="modal-close" onclick="closeSearchResults()">×</button>
       </div>
       <div class="modal-body" id="searchBody"></div>
       <div class="modal-footer">
@@ -91,7 +90,6 @@
     </div>
     <div class="top-center"><h1>APERAM STORE DASHBOARD</h1></div>
     <div class="top-actions">
-      <button class="action-btn" onclick="window.print()">Print</button>
       <button class="action-btn" onclick="fetchLiveData(true)">Sync</button>
     </div>
   </div>

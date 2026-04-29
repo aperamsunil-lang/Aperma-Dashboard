@@ -336,23 +336,30 @@ async function fetchLiveData(showLoadingUI = true) {
     
     // Use requestAnimationFrame for better timing than setTimeout
     requestAnimationFrame(function() {
-      try {
-        setupDropdowns(); updateAllChartsColor(); 
-        if (currentPage === 'all' || currentPage === 'opex-april') buildOpexAprilTable(); 
-        if (currentPage === 'all' || currentPage === 'insights') { loadInsights(); loadAnomalies(); }
-        if (currentPage === 'all' || currentPage === 'analytics') loadPredictiveAnalytics();
-        if (currentPage === 'all' || currentPage === 'gantt') initGanttChart();
-        if (currentPage === 'all' || currentPage === 'opex') updateOpex();
-        if (currentPage === 'all' || currentPage === 'consumption') updateConsumption();
-        if (currentPage === 'all' || currentPage === 'livestock') updateLiveStock();
-        if (currentPage === 'all' || currentPage === 'overallstock') updateOverallStock();
-        if (currentPage === 'all' || currentPage === 'inward') updateInward();
-        if (currentPage === 'all' || currentPage === 'dispatch') updateFG();
-        if (currentPage === 'all' || currentPage === 'scrap') updateScrap();
-        if (currentPage === 'all' || currentPage === 'overview') { updateOverview(); updateOverviewStock(); }
-        if(showLoadingUI) { loader.style.display = 'none'; document.getElementById('main-content').style.display = 'block'; }
+      var errors = [];
+      function safeRun(fn, name) { try { fn(); } catch(e) { errors.push(name + ': ' + (e.message || e)); console.error(name + ' Error:', e); } }
+      
+      setupDropdowns();
+      safeRun(function() { updateAllChartsColor(); }, 'updateAllChartsColor');
+      if (currentPage === 'all' || currentPage === 'opex-april') safeRun(function() { buildOpexAprilTable(); }, 'buildOpexAprilTable');
+      if (currentPage === 'all' || currentPage === 'insights') safeRun(function() { loadInsights(); loadAnomalies(); }, 'insights');
+      if (currentPage === 'all' || currentPage === 'analytics') safeRun(function() { loadPredictiveAnalytics(); }, 'analytics');
+      if (currentPage === 'all' || currentPage === 'gantt') safeRun(function() { initGanttChart(); }, 'gantt');
+      if (currentPage === 'all' || currentPage === 'opex') safeRun(function() { updateOpex(); }, 'opex');
+      if (currentPage === 'all' || currentPage === 'consumption') safeRun(function() { updateConsumption(); }, 'consumption');
+      if (currentPage === 'all' || currentPage === 'livestock') safeRun(function() { updateLiveStock(); }, 'livestock');
+      if (currentPage === 'all' || currentPage === 'overallstock') safeRun(function() { updateOverallStock(); }, 'overallStock');
+      if (currentPage === 'all' || currentPage === 'inward') safeRun(function() { updateInward(); }, 'inward');
+      if (currentPage === 'all' || currentPage === 'dispatch') safeRun(function() { updateFG(); }, 'dispatch');
+      if (currentPage === 'all' || currentPage === 'scrap') safeRun(function() { updateScrap(); }, 'scrap');
+      if (currentPage === 'all' || currentPage === 'overview') safeRun(function() { updateOverview(); updateOverviewStock(); }, 'overview');
+      
+      if(showLoadingUI) { loader.style.display = 'none'; document.getElementById('main-content').style.display = 'block'; }
+      if (errors.length > 0) {
+        showToast("Dashboard assembled with " + errors.length + " warnings. See console.", "error");
+      } else {
         showToast("Data Synced Successfully!", "success");
-      } catch(error) { failHandler("Assembly Error: " + error.message); }
+      }
     });
   } catch (error) { 
     console.error('Data fetch error:', error);
